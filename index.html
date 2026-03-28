@@ -20,7 +20,7 @@
 
 <div class="card">
     <h2>🚀 Envio em Lote (Máx 10)</h2>
-    <p>Conta: andersonmoreiracontato1@gmail.com</p>
+    <p>Enviando de: andersonmoreiracontato1@gmail.com</p>
     
     <div id="bar" class="loading-bar"></div>
     
@@ -31,8 +31,8 @@
 </div>
 
 <script>
-    // SEU LINK NOVO DA CONTA PROFISSIONAL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUv0HJV30R9_63U60VyxPp5bKXhNDbIN9ZGU4iq3Mfo9he1xURcbjfe3BI-YBB4g40/exec";
+    // SEU LINK MAIS RECENTE ATUALIZADO
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxU23jp6AwYpdaYumaULLMXtUhPUolpPsYP2jZvVa5Ke0XQt9tN6aCCHv4bsA6DTom/exec";
     
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('statusBox');
@@ -42,7 +42,7 @@
         const files = Array.from(e.target.files).slice(0, 10);
         if (files.length === 0) return;
 
-        statusBox.innerHTML = "<b>Iniciando processamento...</b><br>";
+        statusBox.innerHTML = "<b>Iniciando envios...</b><br>";
         let processados = 0;
 
         for (let file of files) {
@@ -58,19 +58,19 @@
                 const result = await response.json();
 
                 if (result.sucesso) {
-                    atualizarLog(logId, `✅ Enviado para: ${result.email}`, "success");
+                    atualizarLog(logId, `✅ Enviado: ${result.vaga}`, "success");
                 } else {
                     atualizarLog(logId, `❌ Falha: ${result.erro}`, "error");
                 }
             } catch (err) {
-                atualizarLog(logId, `❌ Erro de conexão com o script`, "error");
+                atualizarLog(logId, `❌ Erro de conexão`, "error");
             }
 
             processados++;
             bar.style.width = (processados / files.length * 100) + "%";
         }
         
-        adicionarLog("", "<b>Processo Finalizado!</b>");
+        adicionarLog("", "<b>Todos processados!</b>");
     };
 
     function toBase64(file) {

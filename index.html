@@ -14,7 +14,8 @@
     input[type="file"] { display: none; }
     .preview { width: 100%; max-height: 250px; border-radius: 10px; margin-bottom: 20px; display: none; object-fit: contain; border: 1px solid #ddd; }
     .preview.show { display: block; }
-    button { width: 100%; padding: 15px; background: #764ba2; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    button { width: 100%; padding: 15px; background: #764ba2; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    button:hover { background: #5a3682; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     .loading { display: none; margin: 20px 0; font-weight: bold; color: #667eea; }
     .result { display: none; margin-top: 20px; padding: 15px; border-radius: 8px; font-size: 14px; text-align: left; word-wrap: break-word; }
@@ -27,7 +28,7 @@
     <h1>📧 Enviar Currículo</h1>
     <div class="upload-area" id="uploadArea">
       <div class="upload-icon">📸</div>
-      <p>Clique para selecionar a imagem</p>
+      <p>Clique para selecionar a imagem do anúncio</p>
       <input type="file" id="fileInput" accept="image/*">
     </div>
     <img id="preview" class="preview">
@@ -37,7 +38,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyMQviAnb0Be8PPkgXFJGHRb847EgDyTuwuHByzzDDbHAVtRj38V76GAtYQQlMOWoC3A/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKjFawqA1EDgc_tRIjPANzkOh3xiF8qFZ-grZM9iUAQkHwKNTbO53egCfYy_GFMOFyow/exec';
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const preview = document.getElementById('preview');
@@ -56,7 +57,7 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const max = 400; // Mantém a imagem pequena para evitar erro de 20KB
+          const max = 400; // Mantém a imagem pequena para evitar erro de limite de bytes
           let w = img.width, h = img.height;
           if (w > h) { if (w > max) { h *= max / w; w = max; } }
           else { if (h > max) { w *= max / h; h = max; } }
@@ -66,6 +67,7 @@
           preview.src = selectedImage;
           preview.classList.add('show');
           sendBtn.disabled = false;
+          result.style.display = 'none';
         };
         img.src = event.target.result;
       };
@@ -87,11 +89,11 @@
           result.innerHTML = `<strong>Vaga:</strong> ${data.vaga}<br><strong>E-mail:</strong> ${data.email}`;
         } else {
           result.className = 'result error';
-          result.innerText = '❌ ' + data.erro;
+          result.innerText = '❌ ' + (data.erro || 'Não foi possível extrair os dados.');
         }
       } catch (e) {
         result.className = 'result error';
-        result.innerText = '❌ Erro de conexão ou permissão do Script.';
+        result.innerText = '❌ Erro de conexão ou permissão. Verifique se o Script está publicado para "Qualquer pessoa".';
       }
       loading.style.display = 'none';
       sendBtn.disabled = false;

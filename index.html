@@ -6,46 +6,53 @@
     <title>Envio em Lote - Anderson</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid #333; text-align: center; }
+        .card { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid #333; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.8); }
         h2 { color: #bb86fc; margin-bottom: 10px; }
-        .btn-upload { background: #03dac6; color: #000; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; margin-bottom: 20px; }
-        .status-container { text-align: left; max-height: 300px; overflow-y: auto; margin-top: 20px; }
-        .log-item { padding: 10px; border-bottom: 1px solid #222; font-size: 13px; }
-        .success { color: #03dac6; }
-        .error { color: #cf6679; }
-        .loading-bar { height: 4px; background: #bb86fc; width: 0%; transition: 0.3s; margin-bottom: 10px; }
+        p { color: #888; font-size: 14px; margin-bottom: 25px; }
+        .btn-upload { background: #03dac6; color: #000; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; margin-bottom: 20px; transition: 0.2s; }
+        .btn-upload:active { transform: scale(0.95); opacity: 0.8; }
+        .status-container { text-align: left; max-height: 300px; overflow-y: auto; margin-top: 20px; border-top: 1px solid #222; }
+        .log-item { padding: 12px; border-bottom: 1px solid #222; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+        .success { color: #03dac6; border-left: 4px solid #03dac6; background: rgba(3, 218, 198, 0.05); }
+        .error { color: #cf6679; border-left: 4px solid #cf6679; background: rgba(207, 102, 121, 0.05); }
+        .loading-bar-bg { background: #222; height: 6px; border-radius: 3px; margin-bottom: 20px; display: none; }
+        #bar { height: 100%; background: #bb86fc; width: 0%; border-radius: 3px; transition: 0.3s; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>🚀 Envio em Lote (Máx 10)</h2>
+    <h2>🚀 Auto-Envio V3 (Lote)</h2>
     <p>Selecione até 10 prints da galeria</p>
     
-    <div id="bar" class="loading-bar"></div>
+    <div id="barBg" class="loading-bar-bg"><div id="bar"></div></div>
     
-    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR PRINTS</button>
+    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR ATÉ 10 PRINTS</button>
     <input type="file" id="fileInput" accept="image/*" multiple hidden>
 
     <div id="statusBox" class="status-container"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgSr6AL-btfFHhwooiMC3B3xKevRJYW7Wy_Qrv9B5xMbmLtAuY2iTRRxqRUmGH-p4g5g/exec";
+    // SEU LINK NOVO DO GOOGLE SCRIPT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYTMxpClV-0nZghtyF4H64p-fBJFvjxu3_9-3yWXVC8EpmVsHW9mqjmI2AQMQnwWWE/exec";
+
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('statusBox');
     const bar = document.getElementById('bar');
+    const barBg = document.getElementById('barBg');
 
     fileInput.onchange = async (e) => {
-        const files = Array.from(e.target.files).slice(0, 10); // Pega no máximo 10
+        const files = Array.from(e.target.files).slice(0, 10);
         if (files.length === 0) return;
 
-        statusBox.innerHTML = "<b>Iniciando processamento...</b><br>";
+        barBg.style.display = "block";
+        statusBox.innerHTML = "";
         let processados = 0;
 
         for (let file of files) {
             const logId = "log-" + Math.random().toString(16).slice(2);
-            adicionarLog(logId, `Processando: ${file.name}...`);
+            adicionarLog(logId, `⏳ Analisando: ${file.name}...`);
 
             try {
                 const base64 = await toBase64(file);
@@ -56,19 +63,17 @@
                 const result = await response.json();
 
                 if (result.sucesso) {
-                    atualizarLog(logId, `✅ Enviado para: ${result.email}`, "success");
+                    atualizarLog(logId, `✅ ENVIADO: ${result.email}`, "success");
                 } else {
-                    atualizarLog(logId, `❌ Erro: ${result.erro}`, "error");
+                    atualizarLog(logId, `❌ FALHA: ${result.erro}`, "error");
                 }
             } catch (err) {
-                atualizarLog(logId, `❌ Erro de conexão`, "error");
+                atualizarLog(logId, `❌ ERRO DE CONEXÃO`, "error");
             }
 
             processados++;
             bar.style.width = (processados / files.length * 100) + "%";
         }
-        
-        adicionarLog("", "<b>Finalizado!</b>");
     };
 
     function toBase64(file) {
@@ -92,7 +97,7 @@
         const el = document.getElementById(id);
         if (el) {
             el.innerHTML = texto;
-            el.classList.add(classe);
+            el.className = 'log-item ' + classe;
         }
     }
 </script>

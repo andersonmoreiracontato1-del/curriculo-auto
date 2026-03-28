@@ -68,53 +68,7 @@ body{font-family:sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh;pa
 <div class="log" id="log"></div>
 <div id="resultados"></div>
 <script>
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbydmaicqLptpLxOlJ-oCigeiHPFYSREn4sjQguoeCDSJqDTbB1tHa_JCfulL2yGGe0O-Q/exec";
-const imagens=[];
-document.getElementById('fileInput').addEventListener('change',function(e){Array.from(e.target.files).forEach(addImagem);this.value='';});
-function addImagem(file){const reader=new FileReader();reader.onload=(e)=>{const base64=e.target.result.split(',')[1];const id=Date.now()+Math.random();imagens.push({id,file,base64,mime:file.type,nome:file.name});renderPreviews();};reader.readAsDataURL(file);}
-function remover(id){const idx=imagens.findIndex(i=>i.id===id);if(idx!==-1)imagens.splice(idx,1);renderPreviews();}
-function renderPreviews(){const list=document.getElementById('previewList');list.innerHTML='';imagens.forEach((img,i)=>{const div=document.createElement('div');div.className='preview-item';div.innerHTML='<img src="data:'+img.mime+';base64,'+img.base64+'" /><div class="info"><div class="nome">Anúncio '+(i+1)+'</div><div class="nome">'+img.nome+'</div></div><span class="remove" onclick="remover('+img.id+')">✕</span>';list.appendChild(div);});document.getElementById('btnEnviar').disabled=imagens.length===0;}
-function log(msg,tipo){tipo=tipo||'info';const el=document.getElementById('log');el.classList.add('show');const now=new Date().toLocaleTimeString('pt-BR');const line=document.createElement('div');line.className='log-line';line.innerHTML='<span class="log-time">'+now+'</span><span class="log-msg '+tipo+'">'+msg+'</span>';el.appendChild(line);el.scrollTop=el.scrollHeight;}
-var cOk=0,cErr=0;
-function addResultado(nome,email,vaga,ok,obs){const div=document.createElement('div');div.className='resultado show';const badge=ok?'<span class="badge badge-ok">✓ Enviado</span>':'<span class="badge badge-err">✗ Erro</span>';div.innerHTML='<div class="res-row"><span class="res-label">Anúncio</span><span class="res-value">'+nome+'</span></div><div class="res-row"><span class="res-label">Vaga</span><span class="res-value">'+(vaga||'—')+'</span></div><div class="res-row"><span class="res-label">Email</span><span class="res-value">'+(email||'—')+'</span></div><div class="res-row"><span class="res-label">Status</span><span class="res-value">'+badge+' '+(obs||'')+'</span></div>';document.getElementById('resultados').appendChild(div);if(ok)cOk++;else cErr++;document.getElementById('cOk').textContent=cOk;document.getElementById('cErr').textContent=cErr;document.getElementById('counter').style.display='block';}
-async function iniciar(){if(imagens.length===0)return;document.getElementById('btnEnviar').disabled=true;document.getElementById('btnEnviar').innerHTML='<div class="spinner"></div> Processando...';document.getElementById('resultados').innerHTML='';document.getElementById('log').innerHTML='';cOk=0;cErr=0;document.getElementById('counter').style.display='none';log('Iniciando: '+imagens.length+' anúncio(s)','info');for(var i=0;i<imagens.length;i++){const img=imagens[i];log('['+(i+1)+'/'+imagens.length+'] Enviando: '+img.nome,'info');try{const resp=await fetch(WEB_APP_URL,{method:'POST',body:JSON.stringify({imagem:img.base64,mimeType:img.mime}),headers:{'Content-Type':'text/plain'}});const data=await resp.json();if(data.sucesso){log('✓ Enviado para: '+data.email+' ('+data.vaga+')','ok');addResultado(img.nome,data.email,data.vaga,true,'');}else{log('✗ Erro: '+data.erro,'err');addResultado(img.nome,null,null,false,data.erro);}}catch(err){log('✗ Falha: '+err.message,'err');addResultado(img.nome,null,null,false,err.message);}if(i<imagens.length-1)await new Promise(r=>setTimeout(r,1000));}log('Concluído! '+cOk+' enviados, '+cErr+' erros.',cOk>0?'ok':'warn');document.getElementById('btnEnviar').disabled=false;document.getElementById('btnEnviar').innerHTML='📤 Enviar Currículos';}
-</script>
-</body>
-</html>.resultado.show{display:block}
-.res-row{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start}
-.res-label{font-size:11px;color:#475569;text-transform:uppercase;min-width:55px;padding-top:2px}
-.res-value{flex:1;color:#e2e8f0;word-break:break-all}
-.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700}
-.badge-ok{background:rgba(16,185,129,.15);color:#10b981}
-.badge-err{background:rgba(239,68,68,.15);color:#ef4444}
-.counter{text-align:center;font-size:13px;color:#475569;margin-top:14px;display:none}
-.counter b{color:#38bdf8;font-size:20px}
-.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-</style>
-</head>
-<body>
-<div class="header">
-<span class="icon">📨</span>
-<h1>Envio de Currículo</h1>
-<p>Foto do anúncio → extrai email → envia automático</p>
-</div>
-<div class="card">
-<div class="card-title">📸 Fotos dos Anúncios</div>
-<div class="upload-area">
-<input type="file" id="fileInput" accept="image/*" multiple />
-<div class="upload-icon">📷</div>
-<div class="upload-text">Toque para adicionar fotos</div>
-<div class="upload-hint">Pode selecionar várias de uma vez</div>
-</div>
-<div class="preview-list" id="previewList"></div>
-</div>
-<button class="btn btn-primary" id="btnEnviar" onclick="iniciar()" disabled>📤 Enviar Currículos</button>
-<div class="counter" id="counter"><b id="cOk">0</b> enviados &nbsp;|&nbsp; <b id="cErr">0</b> erros</div>
-<div class="log" id="log"></div>
-<div id="resultados"></div>
-<script>
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxShzE859cgXx4VlzGeTfN0aK7Q6Ibh0zQ3mLsZv3TWS9OlW_d_GxP6jyFJAbh_9hop-A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbySWpfz6YzyU4ZhIFHpGld6z3WG4X7TiO9xEKNpd8CgKA46N0Ge009FD-_AcYM9S8vRFQ/exec";
 const imagens=[];
 document.getElementById('fileInput').addEventListener('change',function(e){Array.from(e.target.files).forEach(addImagem);this.value='';});
 function addImagem(file){const reader=new FileReader();reader.onload=(e)=>{const base64=e.target.result.split(',')[1];const id=Date.now()+Math.random();imagens.push({id,file,base64,mime:file.type,nome:file.name});renderPreviews();};reader.readAsDataURL(file);}

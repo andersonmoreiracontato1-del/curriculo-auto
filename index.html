@@ -171,6 +171,7 @@
     
     .result-content {
       word-break: break-word;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -243,9 +244,8 @@
         let width = img.width;
         let height = img.height;
         
-        // Redimensionar se muito grande
-        const maxWidth = 800;
-        const maxHeight = 800;
+        const maxWidth = 600;
+        const maxHeight = 600;
         
         if (width > height) {
           if (width > maxWidth) {
@@ -265,8 +265,7 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Comprimir JPEG com qualidade reduzida
-        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+        const compressed = canvas.toDataURL('image/jpeg', 0.6);
         callback(compressed);
       };
       img.src = dataUrl;
@@ -319,6 +318,9 @@
         
         if (data.sucesso) {
           showResult(`✅ Currículo enviado!\n\nEmail: ${data.email}\nVaga: ${data.vaga}`, 'success');
+          selectedImage = null;
+          preview.classList.remove('show');
+          sendBtn.disabled = true;
         } else {
           showResult(`❌ Erro: ${data.erro}`, 'error');
         }
@@ -332,10 +334,9 @@
     
     function showResult(message, type) {
       result.className = `result ${type}`;
-      result.innerHTML = `<div class="result-title">${type === 'success' ? 'Sucesso!' : 'Aviso'}</div><div class="result-content">${message}</div>`;
+      result.innerHTML = `<div class="result-title">${type === 'success' ? '✅ Sucesso!' : '❌ Erro'}</div><div class="result-content">${message}</div>`;
       result.style.display = 'block';
     }
   </script>
 </body>
 </html>
-Agora copia esse código e sobrescreve o index.html no GitHub.

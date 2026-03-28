@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envio em Lote - Anderson</title>
+    <title>Envio de Currículos - Anderson</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid #333; text-align: center; }
@@ -20,7 +20,7 @@
 
 <div class="card">
     <h2>🚀 Envio em Lote (Máx 10)</h2>
-    <p>Enviando de: andersonmoreiracontato1@gmail.com</p>
+    <p style="font-size: 12px; color: #aaa;">Conta: andersonmoreiracontato1@gmail.com</p>
     
     <div id="bar" class="loading-bar"></div>
     
@@ -31,8 +31,8 @@
 </div>
 
 <script>
-    // SEU LINK MAIS RECENTE ATUALIZADO
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxU23jp6AwYpdaYumaULLMXtUhPUolpPsYP2jZvVa5Ke0XQt9tN6aCCHv4bsA6DTom/exec";
+    // SEU LINK DO SCRIPT ATUALIZADO
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNVOL5Pzbs88lphlObPsYIsXqNH7x89QkYsepoJqoae9xWbnvasFKtLPdDL4vbbLJF/exec";
     
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('statusBox');
@@ -47,7 +47,7 @@
 
         for (let file of files) {
             const logId = "log-" + Math.random().toString(16).slice(2);
-            adicionarLog(logId, `Lendo: ${file.name}...`);
+            adicionarLog(logId, `Processando: ${file.name}...`);
 
             try {
                 const base64 = await toBase64(file);
@@ -58,7 +58,7 @@
                 const result = await response.json();
 
                 if (result.sucesso) {
-                    atualizarLog(logId, `✅ Enviado: ${result.vaga}`, "success");
+                    atualizarLog(logId, `✅ Enviado: ${result.vaga || result.email}`, "success");
                 } else {
                     atualizarLog(logId, `❌ Falha: ${result.erro}`, "error");
                 }
@@ -70,7 +70,7 @@
             bar.style.width = (processados / files.length * 100) + "%";
         }
         
-        adicionarLog("", "<b>Todos processados!</b>");
+        adicionarLog("", "<b>Processo concluído!</b>");
     };
 
     function toBase64(file) {

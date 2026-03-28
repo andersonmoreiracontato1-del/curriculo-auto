@@ -3,340 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enviar Currículo Automático</title>
+  <title>Sistema de Envio de Currículo</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    
-    .container {
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
-      max-width: 500px;
-      width: 100%;
-    }
-    
-    h1 {
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 28px;
-      text-align: center;
-    }
-    
-    .subtitle {
-      color: #666;
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 14px;
-    }
-    
-    .upload-area {
-      border: 3px dashed #667eea;
-      border-radius: 10px;
-      padding: 40px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-      background: #f8f9ff;
-    }
-    
-    .upload-area:hover {
-      border-color: #764ba2;
-      background: #f0f2ff;
-    }
-    
-    .upload-area.dragover {
-      border-color: #764ba2;
-      background: #e8ebff;
-    }
-    
-    .upload-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-    }
-    
-    .upload-text {
-      color: #333;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-    
-    .upload-subtext {
-      color: #999;
-      font-size: 12px;
-    }
-    
-    input[type="file"] {
-      display: none;
-    }
-    
-    .preview {
-      width: 100%;
-      max-height: 300px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      display: none;
-      object-fit: cover;
-    }
-    
-    .preview.show {
-      display: block;
-    }
-    
-    button {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-bottom: 10px;
-    }
-    
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-    }
-    
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    .loading {
-      display: none;
-      text-align: center;
-      margin: 20px 0;
-    }
-    
-    .spinner {
-      display: inline-block;
-      width: 30px;
-      height: 30px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .result {
-      display: none;
-      margin-top: 20px;
-      padding: 20px;
-      border-radius: 10px;
-      font-size: 14px;
-    }
-    
-    .result.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    
-    .result.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    
-    .result-title {
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    
-    .result-content {
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
+    .card { background: white; padding: 40px; border-radius: 15px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+    .upload-area { border: 3px dashed #667eea; padding: 30px; border-radius: 10px; cursor: pointer; background: #f8f9ff; margin: 20px 0; transition: 0.3s; }
+    .upload-area:hover { background: #eff2ff; }
+    #preview { width: 100%; display: none; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    button { width: 100%; padding: 18px; background: #764ba2; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+    button:hover { background: #5a3682; transform: translateY(-2px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .loader { display: none; margin: 20px 0; color: #667eea; font-weight: bold; animation: pulse 1.5s infinite; }
+    .res { display: none; margin-top: 20px; padding: 15px; border-radius: 8px; text-align: left; border: 1px solid; }
+    .ok { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+    .err { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📧 Enviar Currículo</h1>
-    <p class="subtitle">Cole ou faça upload de uma imagem do anúncio de vaga</p>
+  <div class="card">
+    <h1>🚀 Envio Automático</h1>
+    <p style="color: #666;">Selecione a foto da vaga para enviar seu currículo.</p>
     
-    <div class="upload-area" id="uploadArea">
-      <div class="upload-icon">📸</div>
-      <div class="upload-text">Clique ou arraste a imagem</div>
-      <div class="upload-subtext">PNG, JPG até 5MB</div>
-      <input type="file" id="fileInput" accept="image/*">
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size:50px">📄</div>
+      <p>Clique aqui para carregar a imagem</p>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
     </div>
+
+    <img id="preview">
     
-    <img id="preview" class="preview" alt="Preview da imagem">
+    <button id="sendBtn" disabled>Extrair e Enviar Agora</button>
     
-    <button id="sendBtn" disabled>Enviar Currículo</button>
-    
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p style="margin-top: 10px; color: #667eea;">Processando...</p>
-    </div>
-    
-    <div class="result" id="result"></div>
+    <div id="loader" class="loader">🤖 IA analisando e enviando e-mail...</div>
+    <div id="result" class="res"></div>
   </div>
 
   <script>
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const preview = document.getElementById('preview');
-    const sendBtn = document.getElementById('sendBtn');
-    const loading = document.getElementById('loading');
-    const result = document.getElementById('result');
-    
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWAbj5tlnGSuSJA7nBJZcOm-fu4kJaH_vjFYTY2KyARMRtmc5cTNLJrepQwlx-yLcxTg/exec';
-    
-    let selectedImage = null;
-    
-    uploadArea.addEventListener('click', () => fileInput.click());
-    
-    uploadArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.classList.add('dragover');
-    });
-    
-    uploadArea.addEventListener('dragleave', () => {
-      uploadArea.classList.remove('dragover');
-    });
-    
-    uploadArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleFile(files[0]);
-      }
-    });
-    
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleFile(e.target.files[0]);
-      }
-    });
-    
-    function compressImage(dataUrl, callback) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        
-        const maxWidth = 600;
-        const maxHeight = 600;
-        
-        if (width > height) {
-          if (width > maxWidth) {
-            height *= maxWidth / width;
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width *= maxHeight / height;
-            height = maxHeight;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        const compressed = canvas.toDataURL('image/jpeg', 0.6);
-        callback(compressed);
-      };
-      img.src = dataUrl;
-    }
-    
-    function handleFile(file) {
-      if (!file.type.startsWith('image/')) {
-        showResult('Erro: Selecione uma imagem válida', 'error');
-        return;
-      }
-      
-      if (file.size > 5 * 1024 * 1024) {
-        showResult('Erro: Imagem muito grande (máximo 5MB)', 'error');
-        return;
-      }
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4oyxm498NCkZ7XEGyFe0Q86dzO5rcJrKEKnRX4M0BrH-UqCOSJ5vereQyAcdFNmqxxg/exec';
+
+    let base64Data = null;
+
+    document.getElementById('fileInput').onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
       
       const reader = new FileReader();
-      reader.onload = (e) => {
-        compressImage(e.target.result, (compressed) => {
-          selectedImage = compressed;
-          preview.src = compressed;
-          preview.classList.add('show');
-          sendBtn.disabled = false;
-          result.style.display = 'none';
-        });
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 500;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE/w; w = MAX_SIZE; } } 
+          else { if (h > MAX_SIZE) { w *= MAX_SIZE/h; h = MAX_SIZE; } }
+          
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          
+          base64Data = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+          const previewImg = document.getElementById('preview');
+          previewImg.src = canvas.toDataURL('image/jpeg');
+          previewImg.style.display = 'block';
+          document.getElementById('sendBtn').disabled = false;
+          document.getElementById('result').style.display = 'none';
+        };
+        img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
-    }
-    
-    sendBtn.addEventListener('click', async () => {
-      if (!selectedImage) return;
-      
-      loading.style.display = 'block';
-      sendBtn.disabled = true;
-      result.style.display = 'none';
-      
+    };
+
+    document.getElementById('sendBtn').onclick = async () => {
+      const btn = document.getElementById('sendBtn');
+      const resDiv = document.getElementById('result');
+      const loader = document.getElementById('loader');
+
+      btn.disabled = true;
+      loader.style.display = 'block';
+      resDiv.style.display = 'none';
+
       try {
-        const base64 = selectedImage.split(',')[1];
-        const mimeType = 'image/jpeg';
-        
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            imagem: base64,
-            mimeType: mimeType
-          })
+          body: JSON.stringify({ imagem: base64Data })
         });
         
         const data = await response.json();
+        resDiv.style.display = 'block';
         
         if (data.sucesso) {
-          showResult(`✅ Currículo enviado!\n\nEmail: ${data.email}\nVaga: ${data.vaga}`, 'success');
-          selectedImage = null;
-          preview.classList.remove('show');
-          sendBtn.disabled = true;
+          resDiv.className = 'res ok';
+          resDiv.innerHTML = `✅ <b>Currículo Enviado!</b><br><b>Cargo:</b> ${data.vaga}<br><b>Para:</b> ${data.email}`;
         } else {
-          showResult(`❌ Erro: ${data.erro}`, 'error');
+          resDiv.className = 'res err';
+          resDiv.innerText = '❌ Erro: ' + data.erro;
         }
       } catch (err) {
-        showResult(`❌ Erro de conexão: ${err.message}`, 'error');
+        resDiv.className = 'res err';
+        resDiv.innerText = '❌ Falha na conexão ou permissão.';
       } finally {
-        loading.style.display = 'none';
-        sendBtn.disabled = false;
+        loader.style.display = 'none';
+        btn.disabled = false;
       }
-    });
-    
-    function showResult(message, type) {
-      result.className = `result ${type}`;
-      result.innerHTML = `<div class="result-title">${type === 'success' ? '✅ Sucesso!' : '❌ Erro'}</div><div class="result-content">${message}</div>`;
-      result.style.display = 'block';
-    }
+    };
   </script>
 </body>
 </html>

@@ -35,33 +35,37 @@ function doGet(e) {
 }
 
 function extrairInfoComGemini(imagemBase64, mimeType) {
-  var url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
-  var prompt = 'Analise esta imagem de anuncio de vaga de emprego. Encontre o email (contem @) e o nome da vaga. Responda APENAS com JSON puro sem markdown: {"email": "encontrado@email.com", "vaga": "nome da vaga"}. Se nao encontrar email use null.';
+  var url = 'https://generativelanguage.googleapis.com/v1beta2/models/gemini-1.5-vision:generateMessage?key=' + GEMINI_API_KEY;
+  var prompt = 'Analise esta imagem de anuncio de vaga de emprego. Encontre o email (contém @) e o nome da vaga. Responda APENAS com JSON: {"email": "...", "vaga": "..."}. Se nao encontrar email, use null.';
+
   var payload = {
-    contents: [{
-      parts: [
-        { inline_data: { mime_type: mimeType, data: imagemBase64 } },
-        { text: prompt }
-      ]
-    }]
+    messages: [
+      {
+        author: "user",
+        content: [
+          { type: "image", image: { imageBytes: imagemBase64 } },
+          { type: "text", text: prompt }
+        ]
+      }
+    ]
   };
+
   var options = {
-    method: 'post',
-    contentType: 'application/json',
+    method: "post",
+    contentType: "application/json",
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   };
+
   var resposta = UrlFetchApp.fetch(url, options);
   var statusCode = resposta.getResponseCode();
   var raw = resposta.getContentText();
-  if (statusCode !== 200) {
-    throw new Error('Erro Gemini API (HTTP ' + statusCode + '): ' + raw);
-  }
+  if (statusCode !== 200) throw new Error('Erro Gemini API (HTTP ' + statusCode + '): ' + raw);
+
   var dados = JSON.parse(raw);
-  if (!dados || !dados.candidates || !dados.candidates[0]) {
-    throw new Error('Resposta Gemini inválida');
-  }
-  var texto = dados.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, '').trim();
+  if (!dados || !dados.candidates || !dados.candidates[0]) throw new Error('Resposta Gemini inválida');
+
+  var texto = dados.candidates[0].content[0].text.trim();
   return JSON.parse(texto);
 }
 
@@ -79,4 +83,4 @@ function buscarCurriculoNoDrive(nomeArquivo) {
   var arquivos = DriveApp.getFilesByName(nomeArquivo);
   if (arquivos.hasNext()) { return arquivos.next(); }
   return null;
-}v
+}

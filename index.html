@@ -3,38 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Envio Automático Anderson</title>
+  <title>Sistema Anderson Moreira</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; text-align: center; }
-    .card { background: #1e1e1e; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
-    h2 { color: #bb86fc; margin-bottom: 5px; }
-    p { color: #aaa; font-size: 14px; margin-bottom: 25px; }
-    .btn-upload { background: #03dac6; color: #000; padding: 20px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; transition: 0.3s; }
-    .btn-upload:active { transform: scale(0.98); opacity: 0.8; }
-    #preview { width: 100%; border-radius: 10px; display: none; margin-top: 20px; border: 2px solid #333; }
-    .status { margin-top: 20px; font-weight: bold; padding: 15px; border-radius: 10px; display: none; font-size: 14px; line-height: 1.5; }
-    .loading { background: #333; color: #bb86fc; border: 1px solid #bb86fc; animation: pulse 1.5s infinite; }
-    .success { background: #03dac6; color: #000; }
-    .error { background: #cf6679; color: white; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+    body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; text-align: center; }
+    .card { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid #333; box-shadow: 0 15px 35px rgba(0,0,0,0.8); }
+    h2 { color: #bb86fc; margin: 0 0 10px 0; }
+    p { color: #888; font-size: 14px; margin-bottom: 25px; }
+    .btn-main { background: #03dac6; color: #000; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; transition: 0.2s; }
+    .btn-main:active { transform: scale(0.95); opacity: 0.8; }
+    #preview { width: 100%; border-radius: 10px; display: none; margin-top: 20px; border: 1px solid #444; }
+    .status { margin-top: 20px; font-weight: bold; padding: 15px; border-radius: 10px; display: none; font-size: 14px; }
+    .loading { background: #1a1a1a; color: #bb86fc; border: 1px solid #bb86fc; }
+    .success { background: #1b5e20; color: #fff; border: 1px solid #2e7d32; }
+    .error { background: #b71c1c; color: #fff; border: 1px solid #d32f2f; }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>🚀 Auto-Envio</h2>
-  <p>Selecione um print da galeria ou tire uma foto.</p>
+  <h2>🚀 Auto-Envio V3</h2>
+  <p>Híbrido: IA + OCR (Sistema Blindado)</p>
 
-  <button class="btn-upload" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR IMAGEM</button>
+  <button class="btn-main" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR PRINT OU FOTO</button>
   <input type="file" id="fileInput" accept="image/*" hidden>
 
   <img id="preview">
-  
   <div id="statusBox" class="status"></div>
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylx0puPP6Y9qcsNJKf1TY70_A-K-N_55XGFOVENyz_gasbuS8F-xDcOK5N_yDq2FTlBA/exec";
+  // SEU LINK NOVO ATUALIZADO
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuPfS9PKLLMPc6IE7FktJ2VONqwR39ETejWmoc8WH97NpsrYERorubmqi_0_YTCNoysw/exec";
 
   const fileInput = document.getElementById('fileInput');
   const preview = document.getElementById('preview');
@@ -48,7 +47,7 @@
     reader.onload = (ev) => {
       preview.src = ev.target.result;
       preview.style.display = "block";
-      showStatus("⏳ Analisando print e enviando...", "loading");
+      showStatus("⏳ Processando e Enviando...<br>(IA + OCR Ativos)", "loading");
     };
     reader.readAsDataURL(file);
 
@@ -56,7 +55,7 @@
     img.src = URL.createObjectURL(file);
     img.onload = async () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 800; 
+      const MAX_WIDTH = 900; 
       const scaleSize = MAX_WIDTH / img.width;
       canvas.width = MAX_WIDTH;
       canvas.height = img.height * scaleSize;
@@ -73,9 +72,9 @@
         const result = await response.json();
 
         if (result.sucesso) {
-          showStatus(`✅ ENVIADO!<br><b>Para:</b> ${result.email}<br><b>Vaga:</b> ${result.vaga || 'Detectada'}`, "success");
+          showStatus(`✅ ENVIADO!<br><b>Email:</b> ${result.email}<br><small>${result.aviso}</small>`, "success");
         } else {
-          showStatus("❌ FALHA: " + (result.erro || "E-mail não encontrado."), "error");
+          showStatus("❌ FALHA: " + result.erro, "error");
         }
       } catch (err) {
         showStatus("❌ ERRO DE CONEXÃO", "error");

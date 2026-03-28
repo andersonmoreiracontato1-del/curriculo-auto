@@ -3,92 +3,175 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Envio de Currículo</title>
+  <title>Envio Automático de Currículo</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
-    .card { background: white; padding: 40px; border-radius: 15px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
-    .upload-area { border: 3px dashed #667eea; padding: 30px; border-radius: 10px; cursor: pointer; background: #f8f9ff; margin: 20px 0; transition: 0.3s; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    h2 { color: #764ba2; margin-bottom: 10px; }
+    .upload-area {
+      border: 2px dashed #667eea;
+      padding: 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 20px 0;
+      background: #f8f9ff;
+      transition: 0.3s;
+    }
     .upload-area:hover { background: #eff2ff; }
-    #preview { width: 100%; display: none; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    button { width: 100%; padding: 18px; background: #764ba2; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-    button:hover { background: #5a3682; transform: translateY(-2px); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .loader { display: none; margin: 20px 0; color: #667eea; font-weight: bold; animation: pulse 1.5s infinite; }
-    .res { display: none; margin-top: 20px; padding: 15px; border-radius: 8px; text-align: left; border: 1px solid; }
-    .ok { background: #d4edda; color: #155724; border-color: #c3e6cb; }
-    .err { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    #preview {
+      width: 100%;
+      margin-top: 15px;
+      display: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      background: #764ba2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+    button:hover { background: #5a3682; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .loader {
+      display: none;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #667eea;
+      animation: blink 1.5s infinite;
+    }
+    .res {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .ok { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .err { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>🚀 Envio Automático</h1>
-    <p style="color: #666;">Selecione a foto da vaga para enviar seu currículo.</p>
-    
+    <h2>🚀 Enviar Currículo</h2>
+    <p style="font-size: 14px; color: #666;">Tire foto da vaga e a IA faz o resto.</p>
+
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-      <div style="font-size:50px">📄</div>
-      <p>Clique aqui para carregar a imagem</p>
-      <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <span style="font-size: 40px;">📸</span>
+      <p>Clique para selecionar ou tirar foto</p>
+      <input type="file" id="fileInput" hidden accept="image/*">
     </div>
 
     <img id="preview">
-    
-    <button id="sendBtn" disabled>Extrair e Enviar Agora</button>
-    
-    <div id="loader" class="loader">🤖 IA analisando e enviando e-mail...</div>
+
+    <button id="sendBtn" disabled>Enviar Agora</button>
+
+    <div id="loader" class="loader">⏳ IA analisando a imagem...</div>
     <div id="result" class="res"></div>
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzeeg4qQmSA-3ean6SV_F4lrr113t7xTSP-r904JjNxVu3Vf7Iz-OPFPXlO065HwWy2/exec';
+    // Link da sua última implantação do Apps Script
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeeg4qQmSA-3ean6SV_F4lrr113t7xTSP-r904JjNxVu3Vf7Iz-OPFPXlO065HwWy2/exec";
 
     let base64Data = null;
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const sendBtn = document.getElementById('sendBtn');
+    const loader = document.getElementById('loader');
+    const result = document.getElementById('result');
 
-    document.getElementById('fileInput').onchange = (e) => {
+    fileInput.onchange = e => {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = ev => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 600; // Resolução otimizada para Gemini 2.0
+          const max = 800; // Resolução ideal para OCR
           let w = img.width, h = img.height;
-          if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE/w; w = MAX_SIZE; } } 
-          else { if (h > MAX_SIZE) { w *= MAX_SIZE/h; h = MAX_SIZE; } }
-          
+
+          if (w > h && w > max) { h *= max / w; w = max; } 
+          else if (h > max) { w *= max / h; h = max; }
+
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          
+
           base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-          const previewImg = document.getElementById('preview');
-          previewImg.src = canvas.toDataURL('image/jpeg');
-          previewImg.style.display = 'block';
-          document.getElementById('sendBtn').disabled = false;
-          document.getElementById('result').style.display = 'none';
+          preview.src = canvas.toDataURL('image/jpeg');
+          preview.style.display = 'block';
+          sendBtn.disabled = false;
+          result.style.display = 'none';
         };
         img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     };
 
-    document.getElementById('sendBtn').onclick = async () => {
-      const btn = document.getElementById('sendBtn');
-      const resDiv = document.getElementById('result');
-      const loader = document.getElementById('loader');
-
-      btn.disabled = true;
+    sendBtn.onclick = async () => {
       loader.style.display = 'block';
-      resDiv.style.display = 'none';
+      result.style.display = 'none';
+      sendBtn.disabled = true;
 
       try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ imagem: base64Data })
+        // Timeout de 30 segundos para evitar travamento
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ imagem: base64Data }),
+          signal: controller.signal
         });
-        
-        const data = await response.json();
-        resDiv.style.display = 'block';
-        
-        if (data
+
+        clearTimeout(timeout);
+        const data = await res.json();
+        result.style.display = 'block';
+
+        if (data.sucesso) {
+          result.className = 'res ok';
+          result.innerHTML = `✅ <b>Enviado com sucesso!</b><br><b>Vaga:</b> ${data.vaga}<br><b>E-mail:</b> ${data.email}`;
+        } else {
+          result.className = 'res err';
+          result.innerText = "Erro: " + data.erro;
+        }
+
+      } catch (err) {
+        result.style.display = 'block';
+        result.className = 'res err';
+        result.innerText = err.name === "AbortError" ? "Tempo esgotado. Tente novamente." : "Falha na conexão com o servidor.";
+      } finally {
+        loader.style.display = 'none';
+        sendBtn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

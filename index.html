@@ -236,6 +236,42 @@
       }
     });
     
+    function compressImage(dataUrl, callback) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Redimensionar se muito grande
+        const maxWidth = 800;
+        const maxHeight = 800;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Comprimir JPEG com qualidade reduzida
+        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+        callback(compressed);
+      };
+      img.src = dataUrl;
+    }
+    
     function handleFile(file) {
       if (!file.type.startsWith('image/')) {
         showResult('Erro: Selecione uma imagem válida', 'error');
@@ -249,11 +285,13 @@
       
       const reader = new FileReader();
       reader.onload = (e) => {
-        selectedImage = e.target.result;
-        preview.src = selectedImage;
-        preview.classList.add('show');
-        sendBtn.disabled = false;
-        result.style.display = 'none';
+        compressImage(e.target.result, (compressed) => {
+          selectedImage = compressed;
+          preview.src = compressed;
+          preview.classList.add('show');
+          sendBtn.disabled = false;
+          result.style.display = 'none';
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -267,7 +305,7 @@
       
       try {
         const base64 = selectedImage.split(',')[1];
-        const mimeType = selectedImage.split(';')[0].split(':')[1];
+        const mimeType = 'image/jpeg';
         
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
@@ -300,3 +338,4 @@
   </script>
 </body>
 </html>
+Agora copia esse código e sobrescreve o index.html no GitHub.

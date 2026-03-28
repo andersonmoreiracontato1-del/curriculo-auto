@@ -40,7 +40,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzhgNqPF89XxYbgCtHBnKRMb8Hgq7fYtVYUy4RwA4XB33mT6wirEg6KacbYBLWdhsh-w/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCyPJZi_fb9egonmay_A0elpDUy4IlrvhqBJsF9xn4H0Evp0rQhwl-LtgMHA6NN5CyOA/exec';
 
     let base64Data = null;
 
@@ -53,7 +53,7 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 500;
+          const MAX_SIZE = 600;
           let w = img.width, h = img.height;
           if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE/w; w = MAX_SIZE; } } 
           else { if (h > MAX_SIZE) { w *= MAX_SIZE/h; h = MAX_SIZE; } }
@@ -61,7 +61,7 @@
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
           
-          base64Data = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+          base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
           const previewImg = document.getElementById('preview');
           previewImg.src = canvas.toDataURL('image/jpeg');
           previewImg.style.display = 'block';

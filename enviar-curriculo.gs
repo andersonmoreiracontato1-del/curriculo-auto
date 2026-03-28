@@ -1,1 +1,82 @@
+var GEMINI_API_KEY = 'AIzaSyBEX0t0sZJN8W7zA6HtLsilX6a2QCgvWFw';
 
+var CONFIG = {
+  NOME_COMPLETO: 'Anderson Moreira do Nascimento',
+  EMAIL_REMETENTE: 'andersonmoreiracontato1@gmail.com',
+  NOME_CURRICULO: 'curriculo_anderson_moreira.pdf'
+};
+
+function doPost(e) {
+  var output;
+  try {
+    var params = JSON.parse(e.postData.contents);
+    var imagemBase64 = params.imagem;
+    var mimeType = params.mimeType || 'image/jpeg';
+    var info = extrairInfoComGemini(imagemBase64, mimeType);
+    if (!info || !info.email) {
+      output = JSON.stringify({ sucesso: false, erro: 'Email nao encontrado' });
+    } else {
+      var curriculo = buscarCurriculoNoDrive(CONFIG.NOME_CURRICULO);
+      if (!curriculo) {
+        output = JSON.stringify({ sucesso: false, erro: 'Curriculo nao encontrado no Drive' });
+      } else {
+        enviarEmail(info.email, info.vaga, curriculo);
+        output = JSON.stringify({ sucesso: true, email: info.email, vaga: info.vaga });
+      }
+    }
+  } catch(err) {
+    output = JSON.stringify({ sucesso: false, erro: err.message });
+  }
+  return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({ status: 'online' })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function extrairInfoComGemini(imagemBase64, mimeType) {
+  var url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
+  var prompt = 'Analise esta imagem de anuncio de vaga de emprego. Encontre o email (contem @) e o nome da vaga. Responda APENAS com JSON puro sem markdown: {"email": "encontrado@email.com", "vaga": "nome da vaga"}. Se nao encontrar email use null.';
+  var payload = {
+    contents: [{
+      parts: [
+        { inline_data: { mime_type: mimeType, data: imagemBase64 } },
+        { text: prompt }
+      ]
+    }]
+  };
+  var options = {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+  var resposta = UrlFetchApp.fetch(url, options);
+  var statusCode = resposta.getResponseCode();
+  var raw = resposta.getContentText();
+  if (statusCode !== 200) {
+    throw new Error('Erro Gemini API (HTTP ' + statusCode + '): ' + raw);
+  }
+  var dados = JSON.parse(raw);
+  if (!dados || !dados.candidates || !dados.candidates[0]) {
+    throw new Error('Resposta Gemini inválida');
+  }
+  var texto = dados.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, '').trim();
+  return JSON.parse(texto);
+}
+
+function enviarEmail(destinatario, nomeVaga, curriculo) {
+  var assunto = 'Curriculo - ' + nomeVaga;
+  var corpo = 'Ola, boa tarde!\n\nMeu nome e ' + CONFIG.NOME_COMPLETO + ' e estou enviando meu curriculo para a vaga de ' + nomeVaga + '.\n\nFico a disposicao para qualquer informacao adicional.\n\nAtenciosamente, ' + CONFIG.NOME_COMPLETO;
+  GmailApp.sendEmail(destinatario, assunto, corpo, {
+    attachments: [curriculo.getAs(MimeType.PDF)],
+    name: CONFIG.NOME_COMPLETO,
+    replyTo: CONFIG.EMAIL_REMETENTE
+  });
+}
+
+function buscarCurriculoNoDrive(nomeArquivo) {
+  var arquivos = DriveApp.getFilesByName(nomeArquivo);
+  if (arquivos.hasNext()) { return arquivos.next(); }
+  return null;
+}v

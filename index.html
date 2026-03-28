@@ -1,82 +1,302 @@
-var GEMINI_API_KEY = 'AIzaSyBEX0t0sZJN8W7zA6HtLsilX6a2QCgvWFw';
-
-var CONFIG = {
-  NOME_COMPLETO: 'Anderson Moreira do Nascimento',
-  EMAIL_REMETENTE: 'andersonmoreiracontato1@gmail.com',
-  NOME_CURRICULO: 'curriculo_anderson_moreira.pdf'
-};
-
-function doPost(e) {
-  var output;
-  try {
-    var params = JSON.parse(e.postData.contents);
-    var imagemBase64 = params.imagem;
-    var mimeType = params.mimeType || 'image/jpeg';
-    var info = extrairInfoComGemini(imagemBase64, mimeType);
-    if (!info || !info.email) {
-      output = JSON.stringify({ sucesso: false, erro: 'Email nao encontrado. Info: ' + JSON.stringify(info) });
-    } else {
-      var curriculo = buscarCurriculoNoDrive(CONFIG.NOME_CURRICULO);
-      if (!curriculo) {
-        output = JSON.stringify({ sucesso: false, erro: 'Curriculo nao encontrado no Drive' });
-      } else {
-        enviarEmail(info.email, info.vaga, curriculo);
-        output = JSON.stringify({ sucesso: true, email: info.email, vaga: info.vaga });
-      }
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enviar Currículo Automático</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-  } catch(err) {
-    output = JSON.stringify({ sucesso: false, erro: err.message });
-  }
-  return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JSON);
-}
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+    
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .upload-area {
+      border: 3px dashed #667eea;
+      border-radius: 10px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+      background: #f8f9ff;
+    }
+    
+    .upload-area:hover {
+      border-color: #764ba2;
+      background: #f0f2ff;
+    }
+    
+    .upload-area.dragover {
+      border-color: #764ba2;
+      background: #e8ebff;
+    }
+    
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+    
+    .upload-text {
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .upload-subtext {
+      color: #999;
+      font-size: 12px;
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .preview {
+      width: 100%;
+      max-height: 300px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      object-fit: cover;
+    }
+    
+    .preview.show {
+      display: block;
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .result {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    
+    .result.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .result.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .result-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .result-content {
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📧 Enviar Currículo</h1>
+    <p class="subtitle">Cole ou faça upload de uma imagem do anúncio de vaga</p>
+    
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text">Clique ou arraste a imagem</div>
+      <div class="upload-subtext">PNG, JPG até 5MB</div>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+    
+    <img id="preview" class="preview" alt="Preview da imagem">
+    
+    <button id="sendBtn" disabled>Enviar Currículo</button>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 10px; color: #667eea;">Processando...</p>
+    </div>
+    
+    <div class="result" id="result"></div>
+  </div>
 
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ status: 'online' })).setMimeType(ContentService.MimeType.JSON);
-}
-
-function extrairInfoComGemini(imagemBase64, mimeType) {
-  var url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
-  var prompt = 'Analise esta imagem de anuncio de vaga de emprego. Encontre o email (contem @) e o nome da vaga. Responda APENAS com JSON puro sem markdown: {"email": "encontrado@email.com", "vaga": "nome da vaga"}. Se nao encontrar email use null.';
-  var payload = {
-    contents: [{
-      parts: [
-        { inline_data: { mime_type: mimeType, data: imagemBase64 } },
-        { text: prompt }
-      ]
-    }]
-  };
-  var options = {
-    method: 'post',
-    contentType: 'application/json',
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  };
-  var resposta = UrlFetchApp.fetch(url, options);
-  var statusCode = resposta.getResponseCode();
-  var raw = resposta.getContentText();
-  if (statusCode !== 200) {
-    throw new Error('Erro Gemini API (HTTP ' + statusCode + '): ' + raw);
-  }
-  var dados = JSON.parse(raw);
-  if (!dados || !dados.candidates || !dados.candidates[0]) {
-    throw new Error('Resposta Gemini inválida: ' + raw);
-  }
-  var texto = dados.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, '').trim();
-  return JSON.parse(texto);
-}
-
-function enviarEmail(destinatario, nomeVaga, curriculo) {
-  var assunto = 'Curriculo - ' + nomeVaga;
-  var corpo = 'Ola, boa tarde!\n\nMeu nome e ' + CONFIG.NOME_COMPLETO + ' e estou enviando meu curriculo para a vaga de ' + nomeVaga + '.\n\nFico a disposicao para qualquer informacao adicional.\n\nAtenciosamente, ' + CONFIG.NOME_COMPLETO;
-  GmailApp.sendEmail(destinatario, assunto, corpo, {
-    attachments: [curriculo.getAs(MimeType.PDF)],
-    name: CONFIG.NOME_COMPLETO,
-    replyTo: CONFIG.EMAIL_REMETENTE
-  });
-}
-
-function buscarCurriculoNoDrive(nomeArquivo) {
-  var arquivos = DriveApp.getFilesByName(nomeArquivo);
-  if (arquivos.hasNext()) { return arquivos.next(); }
-  return null;
-}
+  <script>
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const sendBtn = document.getElementById('sendBtn');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
+    
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwgY1PgdVittr68ndB3ztRYU0OZjQzXUCa3bpMHrLSllOfKc43TPjdo-uM6pjxiRsDTew/exec';
+    
+    let selectedImage = null;
+    
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+    
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showResult('Erro: Selecione uma imagem válida', 'error');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        showResult('Erro: Imagem muito grande (máximo 5MB)', 'error');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        selectedImage = e.target.result;
+        preview.src = selectedImage;
+        preview.classList.add('show');
+        sendBtn.disabled = false;
+        result.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    sendBtn.addEventListener('click', async () => {
+      if (!selectedImage) return;
+      
+      loading.style.display = 'block';
+      sendBtn.disabled = true;
+      result.style.display = 'none';
+      
+      try {
+        const base64 = selectedImage.split(',')[1];
+        const mimeType = selectedImage.split(';')[0].split(':')[1];
+        
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            imagem: base64,
+            mimeType: mimeType
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+          showResult(`✅ Currículo enviado!\n\nEmail: ${data.email}\nVaga: ${data.vaga}`, 'success');
+        } else {
+          showResult(`❌ Erro: ${data.erro}`, 'error');
+        }
+      } catch (err) {
+        showResult(`❌ Erro de conexão: ${err.message}`, 'error');
+      } finally {
+        loading.style.display = 'none';
+        sendBtn.disabled = false;
+      }
+    });
+    
+    function showResult(message, type) {
+      result.className = `result ${type}`;
+      result.innerHTML = `<div class="result-title">${type === 'success' ? 'Sucesso!' : 'Aviso'}</div><div class="result-content">${message}</div>`;
+      result.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

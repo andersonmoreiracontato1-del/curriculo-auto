@@ -20,7 +20,7 @@
 
 <div class="card">
     <h2>🚀 Envio em Lote (Máx 10)</h2>
-    <p style="font-size: 12px; color: #aaa;">Conta: andersonmoreiracontato1@gmail.com</p>
+    <p style="font-size: 12px; color: #aaa;">andersonmoreiracontato1@gmail.com</p>
     
     <div id="bar" class="loading-bar"></div>
     
@@ -31,8 +31,7 @@
 </div>
 
 <script>
-    // SEU LINK DO SCRIPT ATUALIZADO
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNVOL5Pzbs88lphlObPsYIsXqNH7x89QkYsepoJqoae9xWbnvasFKtLPdDL4vbbLJF/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDJsUgxfFawMPSKjC4GZmEDrnvOfE7s90IIM-CVDm4gBTFDwAFKAlVXMuc1yOd0ZKm/exec";
     
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('statusBox');
@@ -58,7 +57,7 @@
                 const result = await response.json();
 
                 if (result.sucesso) {
-                    atualizarLog(logId, `✅ Enviado: ${result.vaga || result.email}`, "success");
+                    atualizarLog(logId, `✅ Enviado e Gravado!`, "success");
                 } else {
                     atualizarLog(logId, `❌ Falha: ${result.erro}`, "error");
                 }
@@ -70,7 +69,7 @@
             bar.style.width = (processados / files.length * 100) + "%";
         }
         
-        adicionarLog("", "<b>Processo concluído!</b>");
+        adicionarLog("", "<b>Concluído!</b>");
     };
 
     function toBase64(file) {

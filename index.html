@@ -12,39 +12,20 @@ function doPost(e) {
     var params = JSON.parse(e.postData.contents);
     var imagemBase64 = params.imagem;
     var mimeType = params.mimeType || 'image/jpeg';
-    
-    Logger.log('📸 Iniciando extração de dados com Gemini...');
     var info = extrairInfoComGemini(imagemBase64, mimeType);
-    
-    Logger.log('✅ Info extraída: ' + JSON.stringify(info));
-    
     if (!info || !info.email) {
-      output = JSON.stringify({ 
-        sucesso: false, 
-        erro: 'Email nao encontrado. Info: ' + JSON.stringify(info) 
-      });
+      output = JSON.stringify({ sucesso: false, erro: 'Email nao encontrado. Info: ' + JSON.stringify(info) });
     } else {
       var curriculo = buscarCurriculoNoDrive(CONFIG.NOME_CURRICULO);
       if (!curriculo) {
-        output = JSON.stringify({ 
-          sucesso: false, 
-          erro: 'Curriculo nao encontrado no Drive' 
-        });
+        output = JSON.stringify({ sucesso: false, erro: 'Curriculo nao encontrado no Drive' });
       } else {
         enviarEmail(info.email, info.vaga, curriculo);
-        output = JSON.stringify({ 
-          sucesso: true, 
-          email: info.email, 
-          vaga: info.vaga 
-        });
+        output = JSON.stringify({ sucesso: true, email: info.email, vaga: info.vaga });
       }
     }
   } catch(err) {
-    Logger.log('❌ Erro: ' + err.message + ' | Stack: ' + err.stack);
-    output = JSON.stringify({ 
-      sucesso: false, 
-      erro: err.message 
-    });
+    output = JSON.stringify({ sucesso: false, erro: err.message });
   }
   return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JSON);
 }
@@ -55,122 +36,47 @@ function doGet(e) {
 
 function extrairInfoComGemini(imagemBase64, mimeType) {
   var url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
-  
   var prompt = 'Analise esta imagem de anuncio de vaga de emprego. Encontre o email (contem @) e o nome da vaga. Responda APENAS com JSON puro sem markdown: {"email": "encontrado@email.com", "vaga": "nome da vaga"}. Se nao encontrar email use null.';
-  
   var payload = {
     contents: [{
       parts: [
-        { 
-          inline_data: { 
-            mime_type: mimeType, 
-            data: imagemBase64 
-          } 
-        },
-        { 
-          text: prompt 
-        }
+        { inline_data: { mime_type: mimeType, data: imagemBase64 } },
+        { text: prompt }
       ]
     }]
   };
-  
   var options = {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   };
-  
-  Logger.log('🔗 URL chamada: ' + url);
-  Logger.log('📤 Payload enviado...');
-  
   var resposta = UrlFetchApp.fetch(url, options);
   var statusCode = resposta.getResponseCode();
   var raw = resposta.getContentText();
-  
-  Logger.log('📥 Status HTTP: ' + statusCode);
-  Logger.log('📋 Resposta bruta: ' + raw.substring(0, 500));
-  
   if (statusCode !== 200) {
     throw new Error('Erro Gemini API (HTTP ' + statusCode + '): ' + raw);
   }
-  
   var dados = JSON.parse(raw);
-  
   if (!dados || !dados.candidates || !dados.candidates[0]) {
     throw new Error('Resposta Gemini inválida: ' + raw);
   }
-  
   var texto = dados.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, '').trim();
-  Logger.log('📝 Texto extraído: ' + texto);
-  
   return JSON.parse(texto);
 }
 
 function enviarEmail(destinatario, nomeVaga, curriculo) {
   var assunto = 'Curriculo - ' + nomeVaga;
   var corpo = 'Ola, boa tarde!\n\nMeu nome e ' + CONFIG.NOME_COMPLETO + ' e estou enviando meu curriculo para a vaga de ' + nomeVaga + '.\n\nFico a disposicao para qualquer informacao adicional.\n\nAtenciosamente, ' + CONFIG.NOME_COMPLETO;
-  
-  try {
-    GmailApp.sendEmail(destinatario, assunto, corpo, {
-      attachments: [curriculo.getAs(MimeType.PDF)],
-      name: CONFIG.NOME_COMPLETO,
-      replyTo: CONFIG.EMAIL_REMETENTE
-    });
-    Logger.log('✅ Email enviado para: ' + destinatario);
-  } catch(err) {
-    Logger.log('❌ Erro ao enviar email: ' + err.message);
-    throw err;
-  }
+  GmailApp.sendEmail(destinatario, assunto, corpo, {
+    attachments: [curriculo.getAs(MimeType.PDF)],
+    name: CONFIG.NOME_COMPLETO,
+    replyTo: CONFIG.EMAIL_REMETENTE
+  });
 }
 
 function buscarCurriculoNoDrive(nomeArquivo) {
-  try {
-    var arquivos = DriveApp.getFilesByName(nomeArquivo);
-    if (arquivos.hasNext()) { 
-      Logger.log('✅ Currículo encontrado: ' + nomeArquivo);
-      return arquivos.next(); 
-    }
-    Logger.log('❌ Currículo não encontrado: ' + nomeArquivo);
-    return null;
-  } catch(err) {
-    Logger.log('❌ Erro ao buscar currículo: ' + err.message);
-    return null;
-  }
-}
-
-function testarAPIGemini() {
-  var url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
-  var payload = {
-    contents: [{
-      parts: [
-        { text: 'Olá, responda "OK" se conseguiu me ouvir.' }
-      ]
-    }]
-  };
-  
-  var options = {
-    method: 'post',
-    contentType: 'application/json',
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  };
-  
-  var resposta = UrlFetchApp.fetch(url, options);
-  Logger.log('Status: ' + resposta.getResponseCode());
-  Logger.log('Resposta: ' + resposta.getContentText());
-}
-
-function listarModelosDisponiveis() {
-  var url = 'https://generativelanguage.googleapis.com/v1/models?key=' + GEMINI_API_KEY;
-  var resposta = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-  var resultado = JSON.parse(resposta.getContentText());
-  Logger.log('Modelos disponíveis:');
-  if (resultado.models) {
-    resultado.models.forEach(function(modelo) {
-      Logger.log('- ' + modelo.name);
-    });
-  } else {
-    Logger.log('Nenhum modelo encontrado ou API key inválida');
-  }
+  var arquivos = DriveApp.getFilesByName(nomeArquivo);
+  if (arquivos.hasNext()) { return arquivos.next(); }
+  return null;
 }

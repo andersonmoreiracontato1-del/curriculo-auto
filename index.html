@@ -21,10 +21,10 @@
 <body>
 
 <div class="card">
-  <h2>🚀 Auto-Envio V3.1</h2>
-  <p>Sistema Blindado (IA + OCR)<br>Arquivo: curriculo_anderson_moreira.pdf</p>
+  <h2>🚀 Auto-Envio Anderson</h2>
+  <p>Status: Híbrido IA + OCR Ativado</p>
 
-  <button class="btn-main" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR PRINT OU FOTO</button>
+  <button class="btn-main" onclick="document.getElementById('fileInput').click()">📁 ENVIAR PRINT DA VAGA</button>
   <input type="file" id="fileInput" accept="image/*" hidden>
 
   <img id="preview">
@@ -32,8 +32,8 @@
 </div>
 
 <script>
-  // SEU NOVO LINK DE IMPLANTAÇÃO
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGScPKgTXy0l4Eyv8Qe5q49Yjfp76zoVtBN5MeEbHTd4ZLTNOFKF3hrWs0uHHT-2c63A/exec";
+  // SEU LINK NOVO ATUALIZADO
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjooSlDyuNJSCqVjn0QdWjhokArl3c0pPBf1Uq71V0EwyaqddoIRDyf1TdlZKIjW2rCQ/exec";
 
   const fileInput = document.getElementById('fileInput');
   const preview = document.getElementById('preview');
@@ -47,7 +47,7 @@
     reader.onload = (ev) => {
       preview.src = ev.target.result;
       preview.style.display = "block";
-      showStatus("⏳ Localizando e-mail e enviando currículo...", "loading");
+      showStatus("⏳ Analisando vaga e preparando currículo...", "loading");
     };
     reader.readAsDataURL(file);
 
@@ -72,12 +72,12 @@
         const result = await response.json();
 
         if (result.sucesso) {
-          showStatus(`✅ CURRÍCULO ENVIADO!<br><b>Para:</b> ${result.email}<br><small>${result.aviso}</small>`, "success");
+          showStatus(`✅ ENVIADO COM SUCESSO!<br><b>Para:</b> ${result.email}<br><small>${result.aviso}</small>`, "success");
         } else {
-          showStatus("❌ ERRO: " + result.erro, "error");
+          showStatus("❌ ERRO NO DRIVE: " + result.erro, "error");
         }
       } catch (err) {
-        showStatus("❌ ERRO DE CONEXÃO: Verifique sua internet.", "error");
+        showStatus("❌ ERRO DE CONEXÃO: Verifique se o link está correto.", "error");
       }
     };
   };

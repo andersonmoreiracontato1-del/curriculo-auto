@@ -21,10 +21,10 @@
 <body>
 
 <div class="card">
-  <h2>🚀 Auto-Envio Anderson</h2>
-  <p>Status: Híbrido IA + OCR Ativado</p>
+  <h2>🚀 Auto-Envio V4</h2>
+  <p>Conexão Direta via ID (Sistema Blindado)</p>
 
-  <button class="btn-main" onclick="document.getElementById('fileInput').click()">📁 ENVIAR PRINT DA VAGA</button>
+  <button class="btn-main" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR PRINT DA VAGA</button>
   <input type="file" id="fileInput" accept="image/*" hidden>
 
   <img id="preview">
@@ -32,8 +32,8 @@
 </div>
 
 <script>
-  // SEU LINK NOVO ATUALIZADO
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjooSlDyuNJSCqVjn0QdWjhokArl3c0pPBf1Uq71V0EwyaqddoIRDyf1TdlZKIjW2rCQ/exec";
+  // LINK DA SUA ÚLTIMA IMPLANTAÇÃO (V4)
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPvAHt6aY8dHPWFwZabvXczabn_PG9Gdr_yeOrXwK-cNjogMUkJXy0AISmXsvcPcGjew/exec";
 
   const fileInput = document.getElementById('fileInput');
   const preview = document.getElementById('preview');
@@ -43,14 +43,16 @@
     const file = e.target.files[0];
     if (!file) return;
 
+    // Mostrar prévia da imagem
     const reader = new FileReader();
     reader.onload = (ev) => {
       preview.src = ev.target.result;
       preview.style.display = "block";
-      showStatus("⏳ Analisando vaga e preparando currículo...", "loading");
+      showStatus("⏳ Analisando print e enviando currículo...", "loading");
     };
     reader.readAsDataURL(file);
 
+    // Processar imagem
     const img = new Image();
     img.src = URL.createObjectURL(file);
     img.onload = async () => {
@@ -74,10 +76,10 @@
         if (result.sucesso) {
           showStatus(`✅ ENVIADO COM SUCESSO!<br><b>Para:</b> ${result.email}<br><small>${result.aviso}</small>`, "success");
         } else {
-          showStatus("❌ ERRO NO DRIVE: " + result.erro, "error");
+          showStatus("❌ ERRO: " + result.erro, "error");
         }
       } catch (err) {
-        showStatus("❌ ERRO DE CONEXÃO: Verifique se o link está correto.", "error");
+        showStatus("❌ ERRO DE CONEXÃO: Verifique o link no GitHub.", "error");
       }
     };
   };

@@ -9,8 +9,8 @@
     .card { background: #1e1e1e; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
     h2 { color: #bb86fc; margin-bottom: 5px; }
     p { color: #aaa; font-size: 14px; margin-bottom: 25px; }
-    .btn-camera { background: #6200ee; color: white; padding: 20px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; transition: 0.3s; }
-    .btn-camera:active { transform: scale(0.98); background: #3700b3; }
+    .btn-upload { background: #03dac6; color: #000; padding: 20px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; transition: 0.3s; }
+    .btn-upload:active { transform: scale(0.98); opacity: 0.8; }
     #preview { width: 100%; border-radius: 10px; display: none; margin-top: 20px; border: 2px solid #333; }
     .status { margin-top: 20px; font-weight: bold; padding: 15px; border-radius: 10px; display: none; font-size: 14px; line-height: 1.5; }
     .loading { background: #333; color: #bb86fc; border: 1px solid #bb86fc; animation: pulse 1.5s infinite; }
@@ -23,10 +23,10 @@
 
 <div class="card">
   <h2>🚀 Auto-Envio</h2>
-  <p>Tire a foto da vaga e o sistema faz o resto.</p>
+  <p>Selecione um print da galeria ou tire uma foto.</p>
 
-  <button class="btn-camera" onclick="document.getElementById('fileInput').click()">📸 ABRIR CÂMERA</button>
-  <input type="file" id="fileInput" accept="image/*" capture="camera" hidden>
+  <button class="btn-upload" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR IMAGEM</button>
+  <input type="file" id="fileInput" accept="image/*" hidden>
 
   <img id="preview">
   
@@ -34,7 +34,6 @@
 </div>
 
 <script>
-  // Link atualizado da sua última implantação
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylx0puPP6Y9qcsNJKf1TY70_A-K-N_55XGFOVENyz_gasbuS8F-xDcOK5N_yDq2FTlBA/exec";
 
   const fileInput = document.getElementById('fileInput');
@@ -45,16 +44,14 @@
     const file = e.target.files[0];
     if (!file) return;
 
-    // Mostrar foto e avisar que começou
     const reader = new FileReader();
     reader.onload = (ev) => {
       preview.src = ev.target.result;
       preview.style.display = "block";
-      showStatus("⏳ IA Analisando e Enviando Currículo...", "loading");
+      showStatus("⏳ Analisando print e enviando...", "loading");
     };
     reader.readAsDataURL(file);
 
-    // Preparar imagem (Redimensionar para ser rápido e não gastar cota à toa)
     const img = new Image();
     img.src = URL.createObjectURL(file);
     img.onload = async () => {
@@ -68,7 +65,6 @@
       
       const base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
-      // DISPARO AUTOMÁTICO PARA O GOOGLE APPS SCRIPT
       try {
         const response = await fetch(SCRIPT_URL, {
           method: "POST",
@@ -77,12 +73,12 @@
         const result = await response.json();
 
         if (result.sucesso) {
-          showStatus(`✅ ENVIADO COM SUCESSO!<br><b>Para:</b> ${result.email}<br><b>Vaga:</b> ${result.vaga || 'Não identificada'}`, "success");
+          showStatus(`✅ ENVIADO!<br><b>Para:</b> ${result.email}<br><b>Vaga:</b> ${result.vaga || 'Detectada'}`, "success");
         } else {
-          showStatus("❌ FALHA: " + (result.erro || "IA não encontrou e-mail."), "error");
+          showStatus("❌ FALHA: " + (result.erro || "E-mail não encontrado."), "error");
         }
       } catch (err) {
-        showStatus("❌ ERRO DE CONEXÃO: Verifique sua internet.", "error");
+        showStatus("❌ ERRO DE CONEXÃO", "error");
       }
     };
   };

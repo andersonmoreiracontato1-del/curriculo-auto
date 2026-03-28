@@ -68,7 +68,7 @@ body{font-family:sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh;pa
 <div class="log" id="log"></div>
 <div id="resultados"></div>
 <script>
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbymhOS7sf4A1wIEeFxgfx0p0m80ZCGjohf9Jdmd1xch_rxa3u3cFcLnOki500SvPkI7Jw/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxShzE859cgXx4VlzGeTfN0aK7Q6Ibh0zQ3mLsZv3TWS9OlW_d_GxP6jyFJAbh_9hop-A/exec";
 const imagens=[];
 document.getElementById('fileInput').addEventListener('change',function(e){Array.from(e.target.files).forEach(addImagem);this.value='';});
 function addImagem(file){const reader=new FileReader();reader.onload=(e)=>{const base64=e.target.result.split(',')[1];const id=Date.now()+Math.random();imagens.push({id,file,base64,mime:file.type,nome:file.name});renderPreviews();};reader.readAsDataURL(file);}

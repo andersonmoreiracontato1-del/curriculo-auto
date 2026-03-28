@@ -3,37 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Anderson Moreira</title>
+  <title>Envio Direto - Moreira</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; text-align: center; }
-    .card { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid #333; box-shadow: 0 15px 35px rgba(0,0,0,0.8); }
-    h2 { color: #bb86fc; margin: 0 0 10px 0; }
-    p { color: #888; font-size: 14px; margin-bottom: 25px; }
-    .btn-main { background: #03dac6; color: #000; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; transition: 0.2s; }
-    .btn-main:active { transform: scale(0.95); opacity: 0.8; }
-    #preview { width: 100%; border-radius: 10px; display: none; margin-top: 20px; border: 1px solid #444; }
-    .status { margin-top: 20px; font-weight: bold; padding: 15px; border-radius: 10px; display: none; font-size: 14px; line-height: 1.4; }
-    .loading { background: #1a1a1a; color: #bb86fc; border: 1px solid #bb86fc; }
-    .success { background: #1b5e20; color: #fff; border: 1px solid #2e7d32; }
-    .error { background: #b71c1c; color: #fff; border: 1px solid #d32f2f; }
+    body { font-family: sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: #111; padding: 25px; border-radius: 15px; width: 90%; max-width: 380px; border: 1px solid #333; text-align: center; }
+    h2 { color: #bb86fc; margin: 0 0 20px 0; }
+    .btn { background: #03dac6; color: #000; padding: 18px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; width: 100%; }
+    #preview { width: 100%; border-radius: 8px; display: none; margin-top: 15px; border: 1px solid #444; }
+    .status { margin-top: 15px; padding: 12px; border-radius: 8px; display: none; font-size: 14px; font-weight: bold; }
+    .loading { background: #222; color: #bb86fc; }
+    .success { background: #1b5e20; color: #fff; }
+    .error { background: #b71c1c; color: #fff; }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>🚀 Auto-Envio V4</h2>
-  <p>Conexão Direta via ID (Sistema Blindado)</p>
-
-  <button class="btn-main" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR PRINT DA VAGA</button>
+  <h2>🚀 Moreira Envios</h2>
+  <button class="btn" onclick="document.getElementById('fileInput').click()">📁 SELECIONAR PRINT / FOTO</button>
   <input type="file" id="fileInput" accept="image/*" hidden>
-
   <img id="preview">
   <div id="statusBox" class="status"></div>
 </div>
 
 <script>
-  // LINK DA SUA ÚLTIMA IMPLANTAÇÃO (V4)
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPvAHt6aY8dHPWFwZabvXczabn_PG9Gdr_yeOrXwK-cNjogMUkJXy0AISmXsvcPcGjew/exec";
+  // SEU LINK NOVO
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyai1my5Ep_kWuLYlwH6dDdXFuGVEsItbSp0wYIVQapsPTitt1pPlT033p4kp2nbImjKg/exec";
 
   const fileInput = document.getElementById('fileInput');
   const preview = document.getElementById('preview');
@@ -43,50 +38,41 @@
     const file = e.target.files[0];
     if (!file) return;
 
-    // Mostrar prévia da imagem
     const reader = new FileReader();
     reader.onload = (ev) => {
       preview.src = ev.target.result;
       preview.style.display = "block";
-      showStatus("⏳ Analisando print e enviando currículo...", "loading");
+      showStatus("⏳ Enviando...", "loading");
     };
     reader.readAsDataURL(file);
 
-    // Processar imagem
     const img = new Image();
     img.src = URL.createObjectURL(file);
     img.onload = async () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 900; 
-      const scaleSize = MAX_WIDTH / img.width;
+      const MAX_WIDTH = 850; 
       canvas.width = MAX_WIDTH;
-      canvas.height = img.height * scaleSize;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      
-      const base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+      canvas.height = img.height * (MAX_WIDTH / img.width);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
       try {
-        const response = await fetch(SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify({ imagem: base64Data })
-        });
-        const result = await response.json();
-
-        if (result.sucesso) {
-          showStatus(`✅ ENVIADO COM SUCESSO!<br><b>Para:</b> ${result.email}<br><small>${result.aviso}</small>`, "success");
+        const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ imagem: base64 }) });
+        const out = await res.json();
+        if (out.sucesso) {
+          showStatus(`✅ ENVIADO!<br>Email: ${out.email}<br>Metodo: ${out.metodo}`, "success");
         } else {
-          showStatus("❌ ERRO: " + result.erro, "error");
+          showStatus("❌ ERRO: " + out.erro, "error");
         }
       } catch (err) {
-        showStatus("❌ ERRO DE CONEXÃO: Verifique o link no GitHub.", "error");
+        showStatus("❌ ERRO DE CONEXÃO", "error");
       }
     };
   };
 
-  function showStatus(text, type) {
-    statusBox.innerHTML = text;
-    statusBox.className = "status " + type;
+  function showStatus(txt, cls) {
+    statusBox.innerHTML = txt;
+    statusBox.className = "status " + cls;
     statusBox.style.display = "block";
   }
 </script>

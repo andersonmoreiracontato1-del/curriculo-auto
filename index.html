@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enviar Currículo</title>
+  <title>Enviar Currículo Automático</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
     body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
@@ -22,20 +22,20 @@
 </head>
 <body>
   <div class="card">
-    <h2>📧 Extrair Dados da Vaga</h2>
+    <h2>📧 Analisar Vaga</h2>
     <div class="upload-box" onclick="document.getElementById('f').click()">
       <div style="font-size: 40px; margin-bottom: 10px;">📸</div>
       <p>Clique para selecionar a imagem</p>
       <input type="file" id="f" accept="image/*" style="display:none">
     </div>
     <img id="p">
-    <button id="b" disabled>Analisar Vaga Agora</button>
-    <div id="loader" class="loading">Analisando imagem...</div>
+    <button id="b" disabled>Extrair Dados da Vaga</button>
+    <div id="loader" class="loading">IA processando imagem...</div>
     <div id="r" class="res"></div>
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwM1zoDpWtOOlon_5rB31_C2OBtg0ctT27_nTuHCEYxh44PSG26pM6KYR59WrF_F603xg/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9FaK6BN4LWhmgh8MhEXbsMB_LNjLJpcCXQ1GcALz7-l1qcwx07F550VSK6Mgfczv9bQ/exec';
     let base64Image = null;
 
     document.getElementById('f').onchange = (e) => {
@@ -44,14 +44,14 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 450; // Redimensiona para evitar erro de limite de tamanho
+          const MAX_SIZE = 450; // Redimensiona para evitar erro de limite de dados
           let width = img.width;
           let height = img.height;
 
           if (width > height) {
-            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
           } else {
-            if (height > MAX_WIDTH) { width *= MAX_WIDTH / height; height = MAX_WIDTH; }
+            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
           }
 
           canvas.width = width;
@@ -59,7 +59,8 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          base64Image = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+          // Qualidade 0.4 para garantir que fique abaixo dos 20KB
+          base64Image = canvas.toDataURL('image/jpeg', 0.4).split(',')[1];
           const preview = document.getElementById('p');
           preview.src = canvas.toDataURL('image/jpeg');
           preview.style.display = 'block';
@@ -94,12 +95,12 @@
           resDiv.innerHTML = `<strong>Vaga:</strong> ${data.vaga}<br><strong>E-mail:</strong> ${data.email}`;
         } else {
           resDiv.className = 'res err';
-          resDiv.innerText = '❌ ' + (data.erro || 'Erro ao processar imagem.');
+          resDiv.innerText = '❌ ' + (data.erro || 'Erro ao extrair dados.');
         }
       } catch (err) {
         resDiv.style.display = 'block';
         resDiv.className = 'res err';
-        resDiv.innerText = '❌ Erro de conexão ou permissão do Script.';
+        resDiv.innerText = '❌ Erro de conexão. Verifique se o Script está como "Qualquer pessoa".';
       } finally {
         loader.style.display = 'none';
         btn.disabled = false;

@@ -19,7 +19,7 @@
 <body>
 
 <div class="card">
-    <h2>🚀 Envio em Lote (Máx 10)</h2>
+    <h2>🚀 Envio em Lote (Máx 30)</h2>
     <p>Conta: andersonmoreiracontato1@gmail.com</p>
     
     <div id="bar" class="loading-bar"></div>
@@ -31,14 +31,14 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-7buDEjj9CzWepY9wKqoDdW3CO4urMB3nQFs0as61T6BLKATXJcYiS5u9qxtHJQ5A/exec";
-    
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDap9MzmwRQDwa2Yemv5xJEuUwVRySP1hddn-Lz12xiLi0bazgtWFvH6m8QXPLxq28/exec";
+
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('statusBox');
     const bar = document.getElementById('bar');
 
     fileInput.onchange = async (e) => {
-        const files = Array.from(e.target.files).slice(0, 10);
+        const files = Array.from(e.target.files).slice(0, 30);
         if (files.length === 0) return;
 
         statusBox.innerHTML = "<b>Iniciando processamento...</b><br>";
@@ -49,7 +49,7 @@
             adicionarLog(logId, `Lendo: ${file.name}...`);
 
             try {
-                const base64 = await toBase64(file);
+                const base64 = await comprimirImagem(file);
                 atualizarLog(logId, `Enviando: ${file.name}...`);
                 const response = await fetch(SCRIPT_URL, {
                     method: "POST",
@@ -63,23 +63,35 @@
                     atualizarLog(logId, `❌ Falha: ${result.erro}`, "error");
                 }
             } catch (err) {
-                atualizarLog(logId, `❌ Erro de conexão com o script`, "error");
+                atualizarLog(logId, `❌ Erro de conexão`, "error");
             }
 
             processados++;
             bar.style.width = (processados / files.length * 100) + "%";
         }
-        
+
         adicionarLog("", "<b>Processo Finalizado!</b>");
         fileInput.value = "";
     };
 
-    function toBase64(file) {
+    function comprimirImagem(file) {
         return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = error => reject(error);
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 1000;
+                let w = img.width, h = img.height;
+                if (w > MAX) { h = h * MAX / w; w = MAX; }
+                if (h > MAX) { w = w * MAX / h; h = MAX; }
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                URL.revokeObjectURL(url);
+                resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+            };
+            img.onerror = reject;
+            img.src = url;
         });
     }
 

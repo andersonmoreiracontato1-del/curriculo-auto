@@ -31,7 +31,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZES43E2Y7zh8FcJP8CQbuewSgwJ39l_3z4BbcoYrruYluIs3yantcOyQs8kPmyYb7/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9Mojl4NBu1TL3cIrnabTmR5EO8WGgNGTdOrXwFCfxAGSrxkwQ150_7aJ_Hk8fbWX6/exec";
 
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('statusBox');
@@ -58,7 +58,7 @@
                 const result = await response.json();
 
                 if (result.sucesso) {
-                    atualizarLog(logId, `✅ [${result.metodo}] ${result.total} email(s) → ${result.email}`, "success");
+                    atualizarLog(logId, `✅ [${result.metodo}] ${result.vaga} → ${result.email}`, "success");
                 } else {
                     atualizarLog(logId, `❌ [${result.metodo || "?"}] ${result.erro}`, "error");
                 }

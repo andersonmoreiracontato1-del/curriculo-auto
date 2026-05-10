@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Candidaturas">
+<title>Candidaturas — Anderson</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg:       #0a0a0a;
+    --surface:  #111111;
+    --border:   #1e1e1e;
+    --accent:   #00e676;
+    --accent2:  #00bcd4;
+    --danger:   #ff5252;
+    --text:     #e8e8e8;
+    --muted:    #555;
+    --radius:   14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 40px;
+  }
+
+  /* HEADER */
+  header {
+    width: 100%;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  header h1 span { color: var(--accent); }
+  header p { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* STATS BAR */
+  .stats {
+    width: 100%;
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat {
+    flex: 1;
+    padding: 14px 0;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-size: 22px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+  }
+  .stat-num.green  { color: var(--accent); }
+  .stat-num.red    { color: var(--danger); }
+  .stat-num.white  { color: var(--text); }
+  .stat-label { font-size: 10px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* MAIN AREA */
+  main {
+    width: 100%;
+    max-width: 480px;
+    padding: 24px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* UPLOAD BUTTON */
+  .btn-upload {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    padding: 18px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-upload:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-upload:disabled {
+    background: #1e1e1e;
+    color: var(--muted);
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-upload .icon { font-size: 20px; }
+
+  /* PROGRESS GERAL */
+  .progress-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .progress-wrap.visible { display: flex; }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* LISTA DE ITENS */
+  .lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* CARD DE ITEM */
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+  /* barra lateral colorida */
+  .item-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--muted);
+    border-radius: 99px;
+    transition: background 0.3s;
+  }
+  .item-card.enviado::before  { background: var(--accent); }
+  .item-card.erro::before     { background: var(--danger); }
+  .item-card.loading::before  { background: var(--accent2); animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
+
+  .item-icon { font-size: 20px; min-width: 24px; text-align: center; }
+
+  .item-info { flex: 1; min-width: 0; }
+  .item-nome {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+  .item-detalhe {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-detalhe.green { color: var(--accent); }
+  .item-detalhe.red   { color: var(--danger); }
+  .item-detalhe.blue  { color: var(--accent2); }
+
+  /* barra de sucesso individual */
+  .item-bar {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.5s ease;
+  }
+  .item-card.enviado .item-bar { width: 100%; }
+
+  /* RODAPÉ LOG */
+  .footer-msg {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    padding-top: 8px;
+    display: none;
+  }
+  .footer-msg.visible { display: block; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--accent);
+    color: #000;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 99px;
+    transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.erro { background: var(--danger); color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📨 <span>Candidaturas</span></h1>
+  <p>andersonmoreiracontato1@gmail.com</p>
+</header>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num white" id="statTotal">0</div>
+    <div class="stat-label">Total</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num green" id="statOk">0</div>
+    <div class="stat-label">Enviados</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num red" id="statErro">0</div>
+    <div class="stat-label">Erros</div>
+  </div>
+</div>
+
+<main>
+  <button class="btn-upload" id="btnUpload" onclick="document.getElementById('fileInput').click()">
+    <span class="icon">📁</span> SELECIONAR PRINTS (máx 100)
+  </button>
+  <input type="file" id="fileInput" accept="image/*" multiple hidden>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-info">
+      <span id="progressTxt">0 / 0</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <div class="lista" id="lista"></div>
+
+  <div class="footer-msg" id="footerMsg"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURAÇÃO — troque pela URL do seu GAS após implantar
+// ============================================================
+const GAS_URL = "COLE_AQUI_A_URL_DO_GAS";
+// ============================================================
+
+const fileInput   = document.getElementById('fileInput');
+const lista       = document.getElementById('lista');
+const progressWrap= document.getElementById('progressWrap');
+const progressFill= document.getElementById('progressFill');
+const progressTxt = document.getElementById('progressTxt');
+const progressPct = document.getElementById('progressPct');
+const btnUpload   = document.getElementById('btnUpload');
+const footerMsg   = document.getElementById('footerMsg');
+const toast       = document.getElementById('toast');
+
+let statTotal = 0, statOk = 0, statErro = 0;
+
+// ── TOAST ──────────────────────────────────────────────────
+function showToast(msg, tipo = "ok") {
+  toast.textContent = msg;
+  toast.className = "toast" + (tipo === "erro" ? " erro" : "");
+  requestAnimationFrame(() => toast.classList.add("show"));
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+// ── STATS ──────────────────────────────────────────────────
+function atualizarStats() {
+  document.getElementById('statTotal').textContent = statTotal;
+  document.getElementById('statOk').textContent    = statOk;
+  document.getElementById('statErro').textContent  = statErro;
+}
+
+// ── CRIAR CARD ─────────────────────────────────────────────
+function criarCard(nome) {
+  const card = document.createElement('div');
+  card.className = 'item-card loading';
+  card.innerHTML = `
+    <div class="item-icon">⏳</div>
+    <div class="item-info">
+      <div class="item-nome">${nome}</div>
+      <div class="item-detalhe blue">Analisando imagem...</div>
+    </div>
+    <div class="item-bar"></div>
+  `;
+  lista.prepend(card);
+  return card;
+}
+
+function atualizarCard(card, estado, icone, detalhe, classeDetalhe) {
+  card.className = 'item-card ' + estado;
+  card.querySelector('.item-icon').textContent = icone;
+  const d = card.querySelector('.item-detalhe');
+  d.textContent = detalhe;
+  d.className = 'item-detalhe ' + classeDetalhe;
+}
+
+// ── COMPRIMIR IMAGEM ───────────────────────────────────────
+function comprimir(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1024;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.75).split(',')[1]);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+// ── PROCESSAR ARQUIVOS ─────────────────────────────────────
+fileInput.onchange = async (e) => {
+  const files = Array.from(e.target.files).slice(0, 100);
+  if (!files.length) return;
+
+  btnUpload.disabled = true;
+  lista.innerHTML = '';
+  statTotal = files.length; statOk = 0; statErro = 0;
+  atualizarStats();
+
+  progressWrap.classList.add('visible');
+  footerMsg.classList.remove('visible');
+
+  let processados = 0;
+
+  for (const file of files) {
+    const card = criarCard(file.name);
+
+    try {
+      const b64 = await comprimir(file);
+      atualizarCard(card, 'loading', '📤', 'Enviando...', 'blue');
+
+      const resp = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ imagem: b64 })
+      });
+      const res = await resp.json();
+
+      if (res.sucesso) {
+        atualizarCard(card, 'enviado', '✅', `${res.email} · ${res.vaga}`, 'green');
+        statOk++;
+      } else {
+        atualizarCard(card, 'erro', '❌', res.erro || 'Erro desconhecido', 'red');
+        statErro++;
+      }
+    } catch {
+      atualizarCard(card, 'erro', '❌', 'Falha de conexão', 'red');
+      statErro++;
+    }
+
+    processados++;
+    const pct = Math.round(processados / files.length * 100);
+    progressFill.style.width = pct + '%';
+    progressTxt.textContent  = `${processados} / ${files.length}`;
+    progressPct.textContent  = pct + '%';
+    atualizarStats();
+  }
+
+  // Finalizado
+  btnUpload.disabled = false;
+  fileInput.value = '';
+  footerMsg.textContent  = `✅ ${statOk} enviados · ❌ ${statErro} erros`;
+  footerMsg.classList.add('visible');
+  showToast(`Concluído! ${statOk} enviados`, statErro > 0 ? "erro" : "ok");
+};
+</script>
+
+</body>
+</html>
